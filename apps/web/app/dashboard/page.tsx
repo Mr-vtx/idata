@@ -214,7 +214,7 @@ export default function Dashboard() {
 
                   {/* ✅ FIXED DOWNLOAD LINK */}
                   <a
-                    href={`${process.env.NEXT_PUBLIC_API_URL}/v1/download/${file._id}`}
+                    href={`${process.env.NEXT_PUBLIC_API_URL}/v1/download/${file._id}?dl=1`}
                     className="btn btn-ghost btn-sm"
                     target="_blank"
                     rel="noopener noreferrer"

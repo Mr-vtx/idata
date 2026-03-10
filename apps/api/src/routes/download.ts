@@ -4,10 +4,11 @@ import { File } from "../models/File.js";
 import { existsInR2, uploadToR2, getFromR2 } from "../lib/r2.js";
 
 export async function downloadRoutes(server: FastifyInstance) {
-  server.get<{ Params: { fileId: string } }>(
+  server.get<{ Params: { fileId: string }; Querystring: { dl?: string } }>(
     "/download/:fileId",
     async (request, reply) => {
       const { fileId } = request.params;
+      const dl = request.query.dl === "1";
 
       const file = await File.findById(fileId);
       if (!file) {
@@ -16,7 +17,10 @@ export async function downloadRoutes(server: FastifyInstance) {
 
       reply
         .header("Content-Type", file.mimeType)
-        .header("Content-Disposition", `inline; filename="${file.fileName}"`)
+        .header(
+          "Content-Disposition",
+          `${dl ? "attachment" : "inline"}; filename="${file.fileName}"`,
+        )
         .header("Content-Length", file.fileSize)
         .header("Accept-Ranges", "bytes")
         .header("Cache-Control", "public, max-age=86400");
@@ -31,11 +35,9 @@ export async function downloadRoutes(server: FastifyInstance) {
 
       server.log.info(`R2 cache miss: ${fileId} — fetching from Telegram`);
       const buffer = await downloadFile(file.messageId);
-
       uploadToR2(r2Key, buffer, file.mimeType).catch((err) =>
-        server.log.error(`R2 upload failed: ${err}`)
+        server.log.error(`R2 upload failed: ${err}`),
       );
-
       return reply.send(buffer);
     },
   );
