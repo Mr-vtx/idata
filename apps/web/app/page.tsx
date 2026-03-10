@@ -1,102 +1,252 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
-
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
-
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
-
-  return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main style={{ minHeight: "100vh" }}>
+      {/* navbar inline since no auth state on landing */}
+      <nav
+        style={{
+          borderBottom: "1px solid var(--border)",
+          padding: "0 1.5rem",
+          height: "56px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <div
+          style={{
+            fontWeight: 700,
+            fontSize: "1rem",
+            letterSpacing: "-0.03em",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.4rem",
+          }}
+        >
+          <span
+            style={{
+              background: "var(--accent)",
+              color: "#fff",
+              padding: "0.15rem 0.4rem",
+              borderRadius: "4px",
+              fontSize: "0.8rem",
+              fontWeight: 700,
+            }}
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.dev/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+            i
+          </span>
+          <span>Data</span>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <Link
+            href="/login"
+            style={{
+              padding: "0.3rem 0.75rem",
+              color: "var(--text-secondary)",
+              fontSize: "0.875rem",
+            }}
+          >
+            Sign in
+          </Link>
+          <Link href="/register" className="btn btn-primary btn-sm">
+            Get started
+          </Link>
+        </div>
+      </nav>
+
+      {/* hero */}
+      <div
+        style={{
+          maxWidth: "960px",
+          margin: "0 auto",
+          padding: "6rem 1.5rem 4rem",
+        }}
+      >
+        <div style={{ marginBottom: "1.5rem" }}>
+          <span className="badge badge-accent">Now in beta · Free to use</span>
+        </div>
+
+        <h1
+          style={{
+            fontSize: "clamp(2.5rem, 6vw, 4rem)",
+            marginBottom: "1.5rem",
+            maxWidth: "700px",
+          }}
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.dev?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
+          File storage built for{" "}
+          <span style={{ color: "var(--accent)" }}>developers</span> and teams
+        </h1>
+
+        <p
+          style={{
+            fontSize: "1rem",
+            maxWidth: "520px",
+            marginBottom: "2.5rem",
+            color: "var(--text-secondary)",
+          }}
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.dev →
-        </a>
+          Upload files up to 2GB, get instant download links, and integrate with
+          any project via our simple API. No limits. No traces.
+        </p>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "0.75rem",
+            flexWrap: "wrap",
+            marginBottom: "5rem",
+          }}
+        >
+          <Link href="/register" className="btn btn-primary btn-lg">
+            Start for free →
+          </Link>
+          <Link href="#api" className="btn btn-ghost btn-lg">
+            View API docs
+          </Link>
+        </div>
+
+        {/* stats */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "1px",
+            background: "var(--border)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-lg)",
+            overflow: "hidden",
+            marginBottom: "5rem",
+          }}
+        >
+          {[
+            { value: "2GB", label: "Max file size" },
+            { value: "∞", label: "Storage capacity" },
+            { value: "< 1s", label: "API response time" },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              style={{ background: "var(--surface)", padding: "1.5rem 2rem" }}
+            >
+              <div
+                style={{
+                  fontSize: "1.75rem",
+                  fontWeight: 700,
+                  letterSpacing: "-0.03em",
+                  color: "var(--highlight)",
+                  marginBottom: "0.25rem",
+                }}
+              >
+                {stat.value}
+              </div>
+              <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* features */}
+        <div style={{ marginBottom: "2rem" }}>
+          <h2 style={{ marginBottom: "2rem" }}>Everything you need</h2>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: "1px",
+              background: "var(--border)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-lg)",
+              overflow: "hidden",
+            }}
+          >
+            {[
+              {
+                icon: "↑",
+                title: "Upload anything",
+                desc: "Videos, images, docs, archives — any format up to 2GB per file.",
+              },
+              {
+                icon: "⚡",
+                title: "Instant links",
+                desc: "Every upload generates a public download URL immediately.",
+              },
+              {
+                icon: "🔒",
+                title: "Secure by default",
+                desc: "Files are stored with zero visible infrastructure. No traces.",
+              },
+              {
+                icon: "{}",
+                title: "Developer API",
+                desc: "Simple REST API. Upload and retrieve files from any app.",
+              },
+            ].map((f) => (
+              <div
+                key={f.title}
+                className="card"
+                style={{ borderRadius: 0, border: "none" }}
+              >
+                <div style={{ fontSize: "1.25rem", marginBottom: "0.75rem" }}>
+                  {f.icon}
+                </div>
+                <h3 style={{ marginBottom: "0.5rem", fontSize: "0.9375rem" }}>
+                  {f.title}
+                </h3>
+                <p style={{ fontSize: "0.8125rem" }}>{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* api preview */}
+        <div id="api" style={{ marginTop: "5rem" }}>
+          <h2 style={{ marginBottom: "0.5rem" }}>Simple API</h2>
+          <p style={{ marginBottom: "1.5rem" }}>
+            Integrate in minutes. Upload from any language or framework.
+          </p>
+          <div
+            className="code-block"
+            style={{ fontSize: "0.8rem", lineHeight: 1.8 }}
+          >
+            <div style={{ color: "var(--text-muted)", marginBottom: "0.5rem" }}>
+              # Upload a file
+            </div>
+            <div>
+              <span style={{ color: "var(--accent)" }}>POST</span>
+              <span style={{ color: "var(--text)" }}>
+                {" "}
+                https://api.idata.dev/v1/upload
+              </span>
+            </div>
+            <div
+              style={{
+                color: "var(--text-muted)",
+                marginTop: "0.75rem",
+                marginBottom: "0.25rem",
+              }}
+            >
+              # Response
+            </div>
+            <div
+              style={{ color: "var(--text-secondary)" }}
+            >{`{ "fileId": "abc123", "url": "https://api.idata.dev/v1/download/abc123" }`}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* footer */}
+      <footer
+        style={{
+          borderTop: "1px solid var(--border)",
+          padding: "1.5rem",
+          textAlign: "center",
+        }}
+      >
+        <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+          iData © 2026 · Built for the future
+        </span>
       </footer>
-    </div>
+    </main>
   );
 }

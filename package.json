@@ -17,7 +17,7 @@
     "node": ">=18"
   },
   "packageManager": "npm@9.2.0",
-  "workspaces": [
+  "workspaces": [ 
     "apps/*",
     "packages/*"
   ]
