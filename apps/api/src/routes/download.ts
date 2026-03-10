@@ -1,13 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { downloadFile } from "@repo/core";
 import { File } from "../models/File.js";
-import { createReadStream, existsSync, mkdirSync } from "fs";
-import { writeFile } from "fs/promises";
-import { join } from "path";
-import { tmpdir } from "os";
-
-const CACHE_DIR = join(tmpdir(), "idata_cache");
-mkdirSync(CACHE_DIR, { recursive: true });
+import { existsInR2, uploadToR2, getFromR2 } from "../lib/r2.js";
 
 export async function downloadRoutes(server: FastifyInstance) {
   server.get<{ Params: { fileId: string } }>(
@@ -25,17 +19,24 @@ export async function downloadRoutes(server: FastifyInstance) {
         .header("Content-Disposition", `inline; filename="${file.fileName}"`)
         .header("Content-Length", file.fileSize)
         .header("Accept-Ranges", "bytes")
-        .header("Cache-Control", "public, max-age=3600");
+        .header("Cache-Control", "public, max-age=86400");
 
-      const cachePath = join(CACHE_DIR, fileId);
+      const r2Key = `files/${fileId}`;
 
-      if (existsSync(cachePath)) {
-        return reply.send(createReadStream(cachePath));
+      if (await existsInR2(r2Key)) {
+        server.log.info(`R2 cache hit: ${fileId}`);
+        const buffer = await getFromR2(r2Key);
+        return reply.send(buffer);
       }
 
+      server.log.info(`R2 cache miss: ${fileId} — fetching from Telegram`);
       const buffer = await downloadFile(file.messageId);
-      await writeFile(cachePath, buffer);
-      return reply.send(createReadStream(cachePath));
+
+      uploadToR2(r2Key, buffer, file.mimeType).catch((err) =>
+        server.log.error(`R2 upload failed: ${err}`)
+      );
+
+      return reply.send(buffer);
     },
   );
 }
