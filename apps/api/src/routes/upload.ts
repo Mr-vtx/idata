@@ -15,7 +15,7 @@ export async function uploadRoutes(server: FastifyInstance) {
     if (authHeader?.startsWith("Bearer ")) {
       const token = authHeader.split(" ")[1];
 
-      if (token?.startsWith("sk_live_")) {
+      if (token?.startsWith("id_live_")) {
         userId = await validateApiKey(token);
       } else {
         try {
