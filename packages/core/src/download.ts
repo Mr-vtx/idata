@@ -6,20 +6,18 @@ export async function downloadFile(
 ): Promise<Buffer> {
   const client = await getClient();
   const channelId = process.env.TELEGRAM_CHANNEL_ID!;
-
-  const messages = await client.getMessages(channelId, {
-    ids: [messageId],
-  });
+  const messages = await client.getMessages(channelId, { ids: [messageId] });
 
   if (!messages || messages.length === 0) {
     throw new Error("Message not found");
   }
 
   const buffer = (await client.downloadMedia(messages[0]!, {
-    progressCallback: (dl, total) => {
+    workers: 16,
+    progressCallback: (dl: number, total: number) => {
       onProgress?.(Number(dl), Number(total));
     },
-  })) as Buffer;
+  } as any)) as Buffer;
 
   return buffer;
 }
