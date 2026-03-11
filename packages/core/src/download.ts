@@ -1,4 +1,5 @@
 import { getClient } from "./auth.js";
+import { PassThrough } from "stream";
 
 export async function downloadFile(
   messageId: number,
@@ -7,17 +8,52 @@ export async function downloadFile(
   const client = await getClient();
   const channelId = process.env.TELEGRAM_CHANNEL_ID!;
   const messages = await client.getMessages(channelId, { ids: [messageId] });
-
   if (!messages || messages.length === 0) {
     throw new Error("Message not found");
   }
-
   const buffer = (await client.downloadMedia(messages[0]!, {
     workers: 16,
     progressCallback: (dl: number, total: number) => {
       onProgress?.(Number(dl), Number(total));
     },
   } as any)) as Buffer;
-
   return buffer;
+}
+
+// new streaming version
+export async function downloadFileStream(
+  messageId: number,
+  onProgress?: (downloaded: number, total: number) => void,
+): Promise<{ stream: PassThrough; size: number }> {
+  const client = await getClient();
+  const channelId = process.env.TELEGRAM_CHANNEL_ID!;
+
+  const messages = await client.getMessages(channelId, { ids: [messageId] });
+  if (!messages || messages.length === 0) {
+    throw new Error("Message not found");
+  }
+
+  const msg = messages[0]!;
+  const media = (msg as any).media;
+  const size: number = media?.document?.size || media?.photo?.size || 0;
+
+  const passThrough = new PassThrough();
+
+  // download in background, pipe chunks to stream as they arrive
+  (async () => {
+    try {
+      const buffer = (await client.downloadMedia(msg, {
+        workers: 16,
+        progressCallback: (dl: number, total: number) => {
+          onProgress?.(Number(dl), Number(total));
+        },
+      } as any)) as Buffer;
+
+      passThrough.end(buffer);
+    } catch (err) {
+      passThrough.destroy(err as Error);
+    }
+  })();
+
+  return { stream: passThrough, size };
 }
