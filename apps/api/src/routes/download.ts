@@ -1,7 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { downloadFile } from "@repo/core";
 import { File } from "../models/File.js";
-import { existsInR2, uploadToR2, getFromR2 } from "../lib/r2.js";
+import { existsInR2, streamFromR2, uploadStreamToR2 } from "../lib/r2.js";
+import { PassThrough } from "stream";
 
 export async function downloadRoutes(server: FastifyInstance) {
   server.get<{ Params: { fileId: string }; Querystring: { dl?: string } }>(
@@ -29,15 +30,20 @@ export async function downloadRoutes(server: FastifyInstance) {
 
       if (await existsInR2(r2Key)) {
         server.log.info(`R2 cache hit: ${fileId}`);
-        const buffer = await getFromR2(r2Key);
-        return reply.send(buffer);
+        const { stream } = await streamFromR2(r2Key);
+        return reply.send(stream);
       }
 
-      server.log.info(`R2 cache miss: ${fileId} — fetching from Telegram`);
+      server.log.info(`R2 cache miss: ${fileId} — streaming from Telegram`);
+
       const buffer = await downloadFile(file.messageId);
-      uploadToR2(r2Key, buffer, file.mimeType).catch((err) =>
-        server.log.error(`R2 upload failed: ${err}`),
-      );
+
+      const r2Stream = new PassThrough();
+      r2Stream.end(buffer);
+      uploadStreamToR2(r2Key, r2Stream, file.mimeType, buffer.length)
+        .then(() => server.log.info(`R2 cached: ${fileId}`))
+        .catch((err) => server.log.error(`R2 upload failed: ${err}`));
+
       return reply.send(buffer);
     },
   );
