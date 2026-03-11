@@ -20,7 +20,6 @@ export async function downloadFile(
   return buffer;
 }
 
-// new streaming version
 export async function downloadFileStream(
   messageId: number,
   onProgress?: (downloaded: number, total: number) => void,
@@ -33,23 +32,27 @@ export async function downloadFileStream(
     throw new Error("Message not found");
   }
 
-  const msg = messages[0]!;
-  const media = (msg as any).media;
-  const size: number = media?.document?.size || media?.photo?.size || 0;
+  const msg = messages[0]! as any;
+  const media = msg.media;
+  const size: number =
+    media?.document?.size || media?.photo?.sizes?.slice(-1)[0]?.size || 0;
 
   const passThrough = new PassThrough();
 
-  // download in background, pipe chunks to stream as they arrive
   (async () => {
     try {
-      const buffer = (await client.downloadMedia(msg, {
-        workers: 16,
-        progressCallback: (dl: number, total: number) => {
-          onProgress?.(Number(dl), Number(total));
-        },
-      } as any)) as Buffer;
-
-      passThrough.end(buffer);
+      let downloaded = 0;
+      for await (const chunk of client.iterDownload({
+        file: media,
+        requestSize: 512 * 1024, 
+        workers: 4,
+      } as any)) {
+        const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+        downloaded += buf.length;
+        onProgress?.(downloaded, size);
+        passThrough.write(buf);
+      }
+      passThrough.end();
     } catch (err) {
       passThrough.destroy(err as Error);
     }
