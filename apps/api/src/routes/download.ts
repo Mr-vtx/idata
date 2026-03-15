@@ -154,6 +154,7 @@ export async function downloadRoutes(server: FastifyInstance) {
     if (isNaN(msgId))
       return reply.status(400).send({ error: "Invalid messageId" });
 
+    // R2 cache check
     const r2Key = `legacy_${msgId}`;
     const inR2 = await existsInR2(r2Key);
     if (inR2) {
