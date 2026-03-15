@@ -7,19 +7,16 @@ export async function downloadFile(
 ): Promise<Buffer> {
   const client = await getClient();
   const channelId = process.env.TELEGRAM_CHANNEL_ID!;
-
   try {
     const messages = await client.getMessages(channelId, { ids: [messageId] });
     if (!messages || messages.length === 0)
       throw new Error("Message not found");
-
     const buffer = (await client.downloadMedia(messages[0]!, {
       workers: 16,
       progressCallback: (dl: number, total: number) => {
         onProgress?.(Number(dl), Number(total));
       },
     } as any)) as Buffer;
-
     return buffer;
   } finally {
     releaseClient(client);
@@ -31,15 +28,6 @@ export interface StreamResult {
   size: number;
 }
 
-/**
- * Stream a file from Telegram using parallel chunk workers.
- *
- * Uses iterDownload with 512KB chunks and 16 workers for maximum throughput.
- * Pipe into a PassThrough stream so the caller can pipe to HTTP response.
- *
- * Range support: pass byteStart/byteEnd to stream a specific byte range.
- * This is critical for video seeking — players send Range: bytes=X-Y headers.
- */
 export async function downloadFileStream(
   messageId: number,
   onProgress?: (downloaded: number, total: number) => void,
@@ -64,24 +52,31 @@ export async function downloadFileStream(
   const start = byteStart ?? 0;
   const alignedOffset = Math.floor(start / CHUNK_SIZE) * CHUNK_SIZE;
 
+  // GramJS iterDownload requires BigInt for BOTH offset and limit
+  const offsetBig = BigInt(alignedOffset);
+  const limitBig =
+    byteEnd !== undefined
+      ? BigInt(Math.ceil((byteEnd - alignedOffset) / CHUNK_SIZE) * CHUNK_SIZE)
+      : undefined;
+
   const passThrough = new PassThrough();
 
   (async () => {
     let downloaded = 0;
-    let skipped = 0; 
+    let skipped = 0;
     try {
-      for await (const chunk of client.iterDownload({
+      const iterOpts: any = {
         file: media,
-        offset: BigInt(alignedOffset),
+        offset: offsetBig,
         requestSize: CHUNK_SIZE,
-        limit:
-          byteEnd !== undefined
-            ? Math.ceil((byteEnd - alignedOffset) / CHUNK_SIZE) * CHUNK_SIZE
-            : undefined,
-        workers: 16
-      } as any)) {
+        workers: 16,
+      };
+      if (limitBig !== undefined) iterOpts.limit = limitBig;
+
+      for await (const chunk of client.iterDownload(iterOpts)) {
         const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
 
+        // Trim leading unaligned bytes when start wasn't chunk-aligned
         if (skipped < start - alignedOffset) {
           const skip = Math.min(start - alignedOffset - skipped, buf.length);
           skipped += skip;
