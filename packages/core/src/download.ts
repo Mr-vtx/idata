@@ -2,15 +2,14 @@ import { getClient, releaseClient } from "./auth.js";
 import { PassThrough } from "stream";
 
 export async function downloadFile(
-  messageId: number,
+  messageId:   number,
   onProgress?: (downloaded: number, total: number) => void,
 ): Promise<Buffer> {
-  const client = await getClient();
+  const client    = await getClient();
   const channelId = process.env.TELEGRAM_CHANNEL_ID!;
   try {
     const messages = await client.getMessages(channelId, { ids: [messageId] });
-    if (!messages || messages.length === 0)
-      throw new Error("Message not found");
+    if (!messages || messages.length === 0) throw new Error("Message not found");
     const buffer = (await client.downloadMedia(messages[0]!, {
       workers: 16,
       progressCallback: (dl: number, total: number) => {
@@ -25,16 +24,16 @@ export async function downloadFile(
 
 export interface StreamResult {
   stream: PassThrough;
-  size: number;
+  size:   number;
 }
 
 export async function downloadFileStream(
-  messageId: number,
+  messageId:   number,
   onProgress?: (downloaded: number, total: number) => void,
-  byteStart?: number,
-  byteEnd?: number,
+  byteStart?:  number,
+  byteEnd?:    number,
 ): Promise<StreamResult> {
-  const client = await getClient();
+  const client    = await getClient();
   const channelId = process.env.TELEGRAM_CHANNEL_ID!;
 
   const messages = await client.getMessages(channelId, { ids: [messageId] });
@@ -43,43 +42,40 @@ export async function downloadFileStream(
     throw new Error("Message not found");
   }
 
-  const msg = messages[0]! as any;
+  const msg   = messages[0]! as any;
   const media = msg.media;
   const size: number =
-    media?.document?.size || media?.photo?.sizes?.slice(-1)[0]?.size || 0;
+    media?.document?.size ||
+    media?.photo?.sizes?.slice(-1)[0]?.size ||
+    0;
 
-  const CHUNK_SIZE = 512 * 1024;
-  const start = byteStart ?? 0;
+  const CHUNK_SIZE    = 512 * 1024;
+  const start         = byteStart ?? 0;
   const alignedOffset = Math.floor(start / CHUNK_SIZE) * CHUNK_SIZE;
-
-  // GramJS iterDownload requires BigInt for BOTH offset and limit
-  const offsetBig = BigInt(alignedOffset);
-  const limitBig =
-    byteEnd !== undefined
-      ? BigInt(Math.ceil((byteEnd - alignedOffset) / CHUNK_SIZE) * CHUNK_SIZE)
-      : undefined;
+  const limitNum      = byteEnd !== undefined
+    ? Math.ceil((byteEnd - alignedOffset) / CHUNK_SIZE) * CHUNK_SIZE
+    : undefined;
 
   const passThrough = new PassThrough();
 
   (async () => {
     let downloaded = 0;
-    let skipped = 0;
+    let skipped    = 0;
     try {
       const iterOpts: any = {
-        file: media,
-        offset: offsetBig,
+        file:        media,
         requestSize: CHUNK_SIZE,
-        workers: 16,
+        workers:     16,
       };
-      if (limitBig !== undefined) iterOpts.limit = limitBig;
+      if (byteStart !== undefined) iterOpts.offset = alignedOffset;
+      if (limitNum  !== undefined) iterOpts.limit  = limitNum;
 
       for await (const chunk of client.iterDownload(iterOpts)) {
         const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
 
-        // Trim leading unaligned bytes when start wasn't chunk-aligned
         if (skipped < start - alignedOffset) {
-          const skip = Math.min(start - alignedOffset - skipped, buf.length);
-          skipped += skip;
+          const skip  = Math.min(start - alignedOffset - skipped, buf.length);
+          skipped    += skip;
           const slice = buf.slice(skip);
           if (slice.length > 0) {
             downloaded += slice.length;
@@ -92,8 +88,7 @@ export async function downloadFileStream(
           passThrough.write(buf);
         }
 
-        if (byteEnd !== undefined && alignedOffset + downloaded >= byteEnd)
-          break;
+        if (byteEnd !== undefined && alignedOffset + downloaded >= byteEnd) break;
       }
       passThrough.end();
     } catch (err) {
