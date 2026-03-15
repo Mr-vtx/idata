@@ -1,24 +1,23 @@
-import Sidebar from "../../components/Sidebar";
+import DocsLayout from "../../components/DocsLayout";
 import EndpointCard from "../../components/EndpointCard";
 
 export default function FilesDoc() {
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar />
-      <main style={{ flex: 1, padding: "3rem", maxWidth: "760px" }}>
-        <h1 style={{ marginBottom: "0.5rem" }}>List Files</h1>
-        <p style={{ fontSize: "1rem", marginBottom: "2rem" }}>
-          Returns all files uploaded by the authenticated user, sorted by most recent.
-        </p>
+    <DocsLayout>
+      <h1>List Files</h1>
+      <p style={{ fontSize: "1rem", marginBottom: "2rem" }}>
+        Returns all files uploaded by the authenticated user, sorted by most
+        recent.
+      </p>
 
-        <EndpointCard
-          method="GET"
-          path="/v1/files"
-          description="List all files belonging to the authenticated user. Returns metadata only — not the file contents."
-          auth="jwt"
-          example={`curl https://api.idata.dev/v1/files \\
+      <EndpointCard
+        method="GET"
+        path="/v1/files"
+        description="List all files belonging to the authenticated user. Returns metadata only — not the file contents."
+        auth="jwt"
+        example={`curl https://api.idata.dev/v1/files \\
   -H "Authorization: Bearer YOUR_JWT_TOKEN"`}
-          response={`{
+        response={`{
   "files": [
     {
       "_id": "64abc123def456",
@@ -29,8 +28,7 @@ export default function FilesDoc() {
     }
   ]
 }`}
-        />
-      </main>
-    </div>
+      />
+    </DocsLayout>
   );
 }

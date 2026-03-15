@@ -31,6 +31,24 @@ function parseRange(rangeHeader: string | undefined): {
   };
 }
 
+/**
+ * Images, video, audio, PDF → inline (embeddable in <img>, <video>, browser)
+ * Everything else → attachment (force download)
+ */
+function smartDisposition(mimeType: string, fileName: string): string {
+  const inlineTypes = [
+    "image/",
+    "video/",
+    "audio/",
+    "text/plain",
+    "application/pdf",
+  ];
+  const isInline = inlineTypes.some((t) => mimeType.startsWith(t));
+  return isInline
+    ? `inline; filename="${fileName}"`
+    : `attachment; filename="${fileName}"`;
+}
+
 async function streamFile(
   reply: any,
   messageId: number,
@@ -53,7 +71,7 @@ async function streamFile(
   reply.header("Accept-Ranges", "bytes");
   reply.header("Content-Type", mimeType || "application/octet-stream");
   reply.header("Cache-Control", "public, max-age=86400");
-  reply.header("Content-Disposition", `attachment; filename="${fileName}"`);
+  reply.header("Content-Disposition", smartDisposition(mimeType, fileName));
 
   if (isPartial && size > 0) {
     reply.header("Content-Range", `bytes ${start}-${end}/${size}`);
@@ -68,16 +86,10 @@ async function streamFile(
 }
 
 export async function downloadRoutes(server: FastifyInstance) {
-  /**
-   * GET /download/:fileId
-   * Issues a signed CDN URL and redirects — Render never streams bytes.
-   */
   server.get("/download/:fileId", async (request, reply) => {
     const { fileId } = request.params as { fileId: string };
-
     const file = await File.findById(fileId);
     if (!file) return reply.status(404).send({ error: "File not found" });
-
     const token = signDownloadToken({
       fileId: file._id.toString(),
       messageId: file.messageId,
@@ -85,20 +97,13 @@ export async function downloadRoutes(server: FastifyInstance) {
       fileReference: file.fileReference ?? null,
       dcId: file.dcId ?? null,
     });
-
     return reply.redirect(`${CDN_URL}/dl/${token}`);
   });
 
-  /**
-   * GET /download/:fileId/info
-   * Returns metadata + signed URL without redirecting.
-   */
   server.get("/download/:fileId/info", async (request, reply) => {
     const { fileId } = request.params as { fileId: string };
-
     const file = await File.findById(fileId);
     if (!file) return reply.status(404).send({ error: "File not found" });
-
     const token = signDownloadToken({
       fileId: file._id.toString(),
       messageId: file.messageId,
@@ -106,7 +111,6 @@ export async function downloadRoutes(server: FastifyInstance) {
       fileReference: file.fileReference ?? null,
       dcId: file.dcId ?? null,
     });
-
     return reply.send({
       fileName: file.fileName,
       fileSize: file.fileSize,
@@ -115,18 +119,10 @@ export async function downloadRoutes(server: FastifyInstance) {
     });
   });
 
-  /**
-   * GET /stream/:fileId
-   * Called by the Cloudflare Worker /files/:fileId route.
-   * Looks up messageId from DB by MongoDB _id, then streams from Telegram.
-   * Supports Range requests for video seeking.
-   */
   server.get("/stream/:fileId", async (request, reply) => {
     const { fileId } = request.params as { fileId: string };
-
     const file = await File.findById(fileId);
     if (!file) return reply.status(404).send({ error: "File not found" });
-
     try {
       return await streamFile(
         reply,
@@ -143,18 +139,12 @@ export async function downloadRoutes(server: FastifyInstance) {
     }
   });
 
-  /**
-   * GET /legacy-stream/:messageId
-   * Called by the Worker for old files (no accessHash metadata).
-   * Streams directly from Telegram by messageId with Range support.
-   */
   server.get("/legacy-stream/:messageId", async (request, reply) => {
     const { messageId } = request.params as { messageId: string };
     const msgId = parseInt(messageId, 10);
     if (isNaN(msgId))
       return reply.status(400).send({ error: "Invalid messageId" });
 
-    // R2 cache check
     const r2Key = `legacy_${msgId}`;
     const inR2 = await existsInR2(r2Key);
     if (inR2) {
