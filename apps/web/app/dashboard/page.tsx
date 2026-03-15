@@ -283,6 +283,7 @@ export default function Dashboard() {
                     {/* Download */}
                     <a
                       href={`https://idata-cdn.idata-vans-cdn.workers.dev/files/${file._id}`}
+                      download={file.fileName}
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Download"

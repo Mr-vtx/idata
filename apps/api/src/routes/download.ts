@@ -53,7 +53,7 @@ async function streamFile(
   reply.header("Accept-Ranges", "bytes");
   reply.header("Content-Type", mimeType || "application/octet-stream");
   reply.header("Cache-Control", "public, max-age=86400");
-  reply.header("Content-Disposition", `inline; filename="${fileName}"`);
+  reply.header("Content-Disposition", `attachment; filename="${fileName}"`);
 
   if (isPartial && size > 0) {
     reply.header("Content-Range", `bytes ${start}-${end}/${size}`);
