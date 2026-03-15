@@ -5,6 +5,14 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  storageLimit: { type: Number, default: 25 * 1024 * 1024 * 1024 }, 
+  usedStorage: { type: Number, default: 0 },
+  plan: {
+    type: String,
+    enum: ["free", "pro", "premium"],
+    default: "free",
+  },
+
   createdAt: { type: Date, default: Date.now },
 });
 

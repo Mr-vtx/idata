@@ -66,10 +66,8 @@ export default function Upload() {
           const db = loaded - lastLoadedRef.current;
           const speed = dt > 0 ? db / dt : 0;
           const eta = speed > 0 ? (total - loaded) / speed : 0;
-
           lastLoadedRef.current = loaded;
           lastTimeRef.current = now;
-
           setStats({
             progress: Math.round((loaded / total) * 100),
             speed: fmtSpeed(speed),
@@ -90,7 +88,7 @@ export default function Upload() {
 
   const copyLink = async () => {
     await navigator.clipboard.writeText(
-      `${process.env.NEXT_PUBLIC_API_URL}/v1/download/${result.fileId}`,
+      `https://idata-cdn.idata-vans-cdn.workers.dev/files/${result.fileId}`,
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -100,13 +98,16 @@ export default function Upload() {
     <main style={{ minHeight: "100vh" }}>
       <Navbar />
       <div
-        style={{
-          maxWidth: "560px",
-          margin: "0 auto",
-          padding: "2.5rem 1.5rem",
-        }}
+        style={{ maxWidth: "560px", margin: "0 auto", padding: "2rem 1rem" }}
       >
-        <h1 style={{ marginBottom: "0.25rem" }}>Upload file</h1>
+        <h1
+          style={{
+            marginBottom: "0.25rem",
+            fontSize: "clamp(1.25rem, 5vw, 1.75rem)",
+          }}
+        >
+          Upload file
+        </h1>
         <p style={{ fontSize: "0.8125rem", marginBottom: "2rem" }}>
           Any format · Up to 2GB per file
         </p>
@@ -132,7 +133,7 @@ export default function Upload() {
               style={{
                 border: `1px dashed ${dragging ? "var(--accent)" : file ? "var(--border-hover)" : "var(--border)"}`,
                 borderRadius: "var(--radius-lg)",
-                padding: "3rem 2rem",
+                padding: "2.5rem 1.5rem",
                 textAlign: "center",
                 cursor: uploading ? "default" : "pointer",
                 background: dragging ? "var(--surface-2)" : "var(--surface)",
@@ -158,6 +159,7 @@ export default function Upload() {
                       fontWeight: 600,
                       marginBottom: "0.5rem",
                       fontSize: "0.9375rem",
+                      wordBreak: "break-word",
                     }}
                   >
                     {file.name}
@@ -167,6 +169,7 @@ export default function Upload() {
                       display: "flex",
                       gap: "0.5rem",
                       justifyContent: "center",
+                      flexWrap: "wrap",
                     }}
                   >
                     <span className="badge">{fmt(file.size)}</span>
@@ -235,9 +238,12 @@ export default function Upload() {
                     style={{
                       fontSize: "0.8125rem",
                       color: "var(--text-secondary)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
                     }}
                   >
-                    Uploading
+                    <div className="spinner spinner-xs" /> Uploading
                   </span>
                   <span
                     style={{
@@ -265,16 +271,16 @@ export default function Upload() {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                    gridTemplateColumns: "1fr 1fr",
                     gap: "0.75rem",
                     textAlign: "center",
                   }}
                 >
                   {[
                     { label: "Speed", value: stats.speed },
+                    { label: "ETA", value: stats.eta },
                     { label: "Uploaded", value: stats.uploaded },
                     { label: "Total", value: stats.total },
-                    { label: "ETA", value: stats.eta },
                   ].map((s) => (
                     <div key={s.label}>
                       <div
@@ -310,7 +316,17 @@ export default function Upload() {
               disabled={!file || uploading}
               style={{ width: "100%" }}
             >
-              {uploading ? `Uploading ${stats?.progress ?? 0}%...` : "Upload →"}
+              {uploading ? (
+                <>
+                  <div
+                    className="spinner spinner-sm spinner-white"
+                    style={{ marginRight: "0.5rem" }}
+                  />
+                  {`Uploading ${stats?.progress ?? 0}%...`}
+                </>
+              ) : (
+                "Upload →"
+              )}
             </button>
           </div>
         ) : (
@@ -327,28 +343,27 @@ export default function Upload() {
               <span className="dot dot-green" />
               <span className="badge badge-success">Upload complete</span>
             </div>
-
             <div
               style={{
                 fontWeight: 600,
                 fontSize: "1rem",
                 marginBottom: "0.75rem",
+                wordBreak: "break-word",
               }}
             >
               {result.fileName}
             </div>
-
             <div
               style={{
                 display: "flex",
                 gap: "0.5rem",
                 marginBottom: "1.25rem",
+                flexWrap: "wrap",
               }}
             >
               <span className="badge">{fmt(result.fileSize)}</span>
               <span className="badge">{result.mimeType}</span>
             </div>
-
             <div style={{ marginBottom: "1.25rem" }}>
               <div
                 style={{
@@ -361,12 +376,19 @@ export default function Upload() {
               >
                 Download URL
               </div>
-              <div className="code-block" style={{ color: "var(--accent)" }}>
-                {process.env.NEXT_PUBLIC_API_URL}/v1/download/{result.fileId}
+              <div
+                className="code-block"
+                style={{
+                  color: "var(--accent)",
+                  wordBreak: "break-all",
+                  fontSize: "0.75rem",
+                }}
+              >
+                https://idata-cdn.idata-vans-cdn.workers.dev/files/
+                {result.fileId}
               </div>
             </div>
-
-            <div style={{ display: "flex", gap: "0.75rem" }}>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               <button className="btn btn-primary" onClick={copyLink}>
                 {copied ? "Copied!" : "Copy link"}
               </button>
@@ -387,6 +409,12 @@ export default function Upload() {
           </div>
         )}
       </div>
+
+      <style>{`
+        @media (max-width: 480px) {
+          .btn { font-size: 0.8rem; padding: 0.5rem 0.875rem; }
+        }
+      `}</style>
     </main>
   );
 }

@@ -3,7 +3,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "../../lib/api";
-import { useStore } from "../../lib/store";
 
 export default function Register() {
   const [username, setUsername] = useState("");
@@ -11,7 +10,6 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { setUser } = useStore();
   const router = useRouter();
 
   const handleSubmit = async () => {
@@ -19,13 +17,8 @@ export default function Register() {
     setLoading(true);
     setError("");
     try {
-      const res = await api.post("/v1/auth/register", {
-        username,
-        email,
-        password,
-      });
-      setUser({ username: res.data.username, token: res.data.token });
-      router.push("/dashboard");
+      await api.post("/v1/auth/register", { username, email, password });
+      router.push("/login?registered=true");
     } catch (e: any) {
       setError(e.response?.data?.error || "Registration failed");
     } finally {
@@ -144,7 +137,14 @@ export default function Register() {
               disabled={loading}
               style={{ width: "100%", marginTop: "0.25rem" }}
             >
-              {loading ? "Creating account..." : "Create account"}
+              {loading ? (
+                <>
+                  <div className="spinner spinner-sm spinner-white" />
+                  Creating account...
+                </>
+              ) : (
+                "Create account →"
+              )}
             </button>
           </div>
         </div>

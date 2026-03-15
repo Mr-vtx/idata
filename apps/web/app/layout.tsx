@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "../components/ThemeProvider";
 import { Analytics } from "@vercel/analytics/next";
+import AuthProvider from "../components/AuthProvider";
 
 export const metadata: Metadata = {
   title: "iData — File Storage Infrastructure",
@@ -18,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ThemeProvider>
-          {children}
+          <AuthProvider>{children}</AuthProvider>
           <Analytics />
         </ThemeProvider>
       </body>

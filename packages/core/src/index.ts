@@ -1,5 +1,5 @@
-export { getClient, getSessionString } from "./auth.js";
-export { uploadFile } from "./upload.js";
+export { getClient, releaseClient, getSessionString } from "./auth.js";
+export { uploadFile, hashFile } from "./upload.js";
 export type { UploadResult } from "./upload.js";
-export { downloadFile } from "./download.js";
-export { downloadFileStream } from "./download.js";
+export { downloadFile, downloadFileStream } from "./download.js";
+export type { StreamResult } from "./download.js";

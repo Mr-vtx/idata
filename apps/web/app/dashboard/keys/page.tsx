@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Navbar from "../../../components/Navbar";
 import api from "../../../lib/api";
 
@@ -93,11 +92,7 @@ export default function ApiKeys() {
     <main style={{ minHeight: "100vh" }}>
       <Navbar />
       <div
-        style={{
-          maxWidth: "760px",
-          margin: "0 auto",
-          padding: "2.5rem 1.5rem",
-        }}
+        style={{ maxWidth: "760px", margin: "0 auto", padding: "2rem 1rem" }}
       >
         {/* header */}
         <div
@@ -106,12 +101,20 @@ export default function ApiKeys() {
             justifyContent: "space-between",
             alignItems: "center",
             marginBottom: "2rem",
+            gap: "1rem",
           }}
         >
           <div>
-            <h1 style={{ marginBottom: "0.25rem" }}>API Keys</h1>
+            <h1
+              style={{
+                marginBottom: "0.25rem",
+                fontSize: "clamp(1.25rem, 5vw, 1.75rem)",
+              }}
+            >
+              API Keys
+            </h1>
             <p style={{ fontSize: "0.8125rem" }}>
-              Use these keys to authenticate requests to the iData API
+              Authenticate requests to the iData API
             </p>
           </div>
           <button
@@ -120,6 +123,7 @@ export default function ApiKeys() {
               setShowForm(true);
               setNewKey(null);
             }}
+            style={{ flexShrink: 0, whiteSpace: "nowrap" }}
           >
             + New key
           </button>
@@ -127,7 +131,7 @@ export default function ApiKeys() {
 
         <div className="divider" style={{ marginBottom: "1.5rem" }} />
 
-        {/* new key just created — show once */}
+        {/* new key banner */}
         {newKey && (
           <div
             className="alert alert-success"
@@ -142,7 +146,7 @@ export default function ApiKeys() {
               style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
             >
               <span className="dot dot-green" />
-              <span style={{ fontWeight: 500 }}>
+              <span style={{ fontWeight: 500, fontSize: "0.875rem" }}>
                 Key created — copy it now, you won't see it again
               </span>
             </div>
@@ -153,15 +157,16 @@ export default function ApiKeys() {
                 borderRadius: "var(--radius-sm)",
                 padding: "0.75rem 1rem",
                 fontFamily: "var(--font-mono)",
-                fontSize: "0.8rem",
+                fontSize: "0.75rem",
                 wordBreak: "break-all",
                 display: "flex",
                 justifyContent: "space-between",
-                alignItems: "center",
+                alignItems: "flex-start",
                 gap: "1rem",
+                flexWrap: "wrap",
               }}
             >
-              <span>{newKey}</span>
+              <span style={{ flex: 1 }}>{newKey}</span>
               <button
                 className="btn btn-ghost btn-sm"
                 onClick={copyKey}
@@ -180,7 +185,7 @@ export default function ApiKeys() {
         {showForm && (
           <div className="card" style={{ marginBottom: "1.5rem" }}>
             <h3 style={{ marginBottom: "1rem" }}>New API key</h3>
-            <div style={{ display: "flex", gap: "0.75rem" }}>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               <input
                 className="input"
                 placeholder="Key name e.g. Production, My App..."
@@ -188,6 +193,7 @@ export default function ApiKeys() {
                 onChange={(e) => setKeyName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && createKey()}
                 autoFocus
+                style={{ flex: 1, minWidth: "160px" }}
               />
               <button
                 className="btn btn-primary"
@@ -232,7 +238,7 @@ export default function ApiKeys() {
           <div
             style={{
               textAlign: "center",
-              padding: "4rem 2rem",
+              padding: "4rem 1.5rem",
               border: "1px dashed var(--border)",
               borderRadius: "var(--radius-lg)",
             }}
@@ -266,26 +272,27 @@ export default function ApiKeys() {
                 key={key.id}
                 style={{
                   background: "var(--surface)",
-                  padding: "1rem 1.25rem",
+                  padding: "1rem",
                   display: "flex",
                   alignItems: "center",
-                  gap: "1rem",
+                  gap: "0.75rem",
                   opacity: key.isActive ? 1 : 0.5,
+                  flexWrap: "wrap",
                 }}
               >
-                {/* status dot */}
                 <span
                   className={`dot ${key.isActive ? "dot-green" : "dot-red"}`}
+                  style={{ flexShrink: 0 }}
                 />
 
-                {/* info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "0.75rem",
+                      gap: "0.5rem",
                       marginBottom: "0.3rem",
+                      flexWrap: "wrap",
                     }}
                   >
                     <span style={{ fontWeight: 500, fontSize: "0.875rem" }}>
@@ -298,14 +305,15 @@ export default function ApiKeys() {
                   <div
                     style={{
                       display: "flex",
-                      gap: "1rem",
+                      gap: "0.5rem",
                       alignItems: "center",
+                      flexWrap: "wrap",
                     }}
                   >
                     <code
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "0.75rem",
+                        fontSize: "0.72rem",
                         color: "var(--text-muted)",
                         background: "var(--surface-2)",
                         padding: "0.1rem 0.4rem",
@@ -321,7 +329,7 @@ export default function ApiKeys() {
                         color: "var(--text-muted)",
                       }}
                     >
-                      Created {formatDate(key.createdAt)}
+                      {formatDate(key.createdAt)}
                     </span>
                     {key.lastUsed && (
                       <span
@@ -330,7 +338,7 @@ export default function ApiKeys() {
                           color: "var(--text-muted)",
                         }}
                       >
-                        Last used {formatDate(key.lastUsed)}
+                        Used {formatDate(key.lastUsed)}
                       </span>
                     )}
                     {!key.lastUsed && key.isActive && (
@@ -346,12 +354,12 @@ export default function ApiKeys() {
                   </div>
                 </div>
 
-                {/* revoke */}
                 {key.isActive && (
                   <button
                     className="btn btn-danger btn-sm"
                     onClick={() => revokeKey(key.id)}
                     disabled={revoking === key.id}
+                    style={{ flexShrink: 0 }}
                   >
                     {revoking === key.id ? "Revoking..." : "Revoke"}
                   </button>
@@ -368,25 +376,28 @@ export default function ApiKeys() {
           >
             Using your API key
           </h4>
-          <div className="code-block">
+          <div
+            className="code-block"
+            style={{ fontSize: "0.75rem", overflowX: "auto" }}
+          >
             <div style={{ color: "var(--text-muted)", marginBottom: "0.5rem" }}>
               # Upload a file
             </div>
-            <div>
+            <div style={{ whiteSpace: "nowrap" }}>
               <span style={{ color: "var(--accent)" }}>curl</span>
               <span style={{ color: "var(--text)" }}>
                 {" "}
-                -X POST https://api.idata.dev/v1/upload \
+                -X POST https://idata-8jhr.onrender.com/v1/upload \
               </span>
             </div>
-            <div style={{ paddingLeft: "1rem" }}>
+            <div style={{ paddingLeft: "1rem", whiteSpace: "nowrap" }}>
               <span style={{ color: "var(--text-muted)" }}>-H </span>
               <span style={{ color: "var(--highlight)" }}>
                 "Authorization: Bearer YOUR_API_KEY"
               </span>
               <span style={{ color: "var(--text)" }}> \</span>
             </div>
-            <div style={{ paddingLeft: "1rem" }}>
+            <div style={{ paddingLeft: "1rem", whiteSpace: "nowrap" }}>
               <span style={{ color: "var(--text-muted)" }}>-F </span>
               <span style={{ color: "var(--highlight)" }}>
                 "file=@yourfile.mp4"

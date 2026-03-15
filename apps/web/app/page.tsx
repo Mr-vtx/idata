@@ -101,7 +101,10 @@ export default function Home() {
           <Link href="/register" className="btn btn-primary btn-lg">
             Start for free →
           </Link>
-          <Link href="#api" className="btn btn-ghost btn-lg">
+          <Link
+            href="https://idata-docs.vercel.app/"
+            className="btn btn-ghost btn-lg"
+          >
             View API docs
           </Link>
         </div>

@@ -374,7 +374,9 @@ a {
   color: var(--warning);
 }
 
-/* SKELETON LOADER */
+/* ========================
+   SKELETON LOADER
+======================== */
 .skeleton {
   background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
   background-size: 200% 100%;
@@ -385,6 +387,181 @@ a {
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+/* ========================
+   SPINNERS
+======================== */
+
+/* Base spinner — usage: <div class="spinner" /> */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Sizes */
+.spinner-xs { width: 12px; height: 12px; border-width: 1.5px; }
+.spinner-sm { width: 16px; height: 16px; border-width: 2px; }
+.spinner-md { width: 24px; height: 24px; border-width: 2.5px; }
+.spinner-lg { width: 36px; height: 36px; border-width: 3px; }
+.spinner-xl { width: 48px; height: 48px; border-width: 3.5px; }
+
+/* Color variants */
+.spinner-white  { border-color: rgba(255,255,255,0.25); border-top-color: #fff; }
+.spinner-success { border-color: rgba(34,197,94,0.2); border-top-color: var(--success); }
+.spinner-warning { border-color: rgba(245,158,11,0.2); border-top-color: var(--warning); }
+.spinner-error   { border-color: rgba(239,68,68,0.2);  border-top-color: var(--error); }
+.spinner-muted   { border-color: var(--border); border-top-color: var(--text-muted); }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========================
+   PAGE LOADER
+   Full-screen loading state
+   Usage: <div class="page-loader" />
+======================== */
+.page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: fadeIn 0.15s ease;
+}
+
+.page-loader-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  animation: logoPulse 1.6s ease-in-out infinite;
+}
+
+.page-loader-bar {
+  width: 120px;
+  height: 2px;
+  background: var(--border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.page-loader-bar::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 40%;
+  background: var(--accent);
+  border-radius: var(--radius-full);
+  animation: loadingBar 1.2s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.75; transform: scale(0.94); }
+}
+
+@keyframes loadingBar {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(150%); }
+  100% { transform: translateX(350%); }
+}
+
+/* ========================
+   INLINE LOADER
+   For buttons, rows, sections
+   Usage: <div class="loader-row" />
+======================== */
+.loader-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+/* 3-dot bounce loader */
+.dots-loader {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.dots-loader span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  animation: dotBounce 1.2s ease-in-out infinite;
+}
+
+.dots-loader span:nth-child(2) { animation-delay: 0.2s; }
+.dots-loader span:nth-child(3) { animation-delay: 0.4s; }
+
+.dots-loader.dots-accent span   { background: var(--accent); }
+.dots-loader.dots-white span    { background: #fff; }
+.dots-loader.dots-success span  { background: var(--success); }
+
+@keyframes dotBounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40%           { transform: scale(1);   opacity: 1; }
+}
+
+/* ========================
+   SECTION LOADER
+   Centered spinner inside a container
+   Usage: <div class="section-loader" />
+======================== */
+.section-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.5rem;
+  width: 100%;
+}
+
+/* ========================
+   OVERLAY LOADER
+   Semi-transparent overlay over a card/section
+   Usage: wrap in position:relative, add <div class="overlay-loader" />
+======================== */
+.overlay-loader {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(2px);
+  border-radius: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  animation: fadeIn 0.15s ease;
+}
+
+[data-theme="light"] .overlay-loader {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* TOOLTIP */

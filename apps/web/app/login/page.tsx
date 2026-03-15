@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import api from "../../lib/api";
 import { useStore } from "../../lib/store";
 
@@ -12,6 +12,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { setUser } = useStore();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const justRegistered = searchParams.get("registered") === "true";
 
   const handleSubmit = async () => {
     if (!email || !password) return;
@@ -19,8 +21,17 @@ export default function Login() {
     setError("");
     try {
       const res = await api.post("/v1/auth/login", { email, password });
-      setUser({ username: res.data.username, token: res.data.token });
-      router.push("/dashboard");
+      const part = res.data.token.split(".")[1];
+      const payload = JSON.parse(atob(part));
+      setUser({
+        username: res.data.username,
+        token: res.data.token,
+        email,
+        id: payload.id,
+      });
+      const next = searchParams.get("next");
+      const hasOnboarded = localStorage.getItem("idata_onboarded");
+      router.push(next || (hasOnboarded ? "/dashboard" : "/onboarding"));
     } catch (e: any) {
       setError(e.response?.data?.error || "Invalid credentials");
     } finally {
@@ -38,7 +49,6 @@ export default function Login() {
       }}
     >
       <div style={{ width: "100%", maxWidth: "380px" }}>
-        {/* logo */}
         <Link
           href="/"
           style={{
@@ -63,6 +73,27 @@ export default function Login() {
           </span>
           <span style={{ fontWeight: 700, fontSize: "1rem" }}>Data</span>
         </Link>
+
+        {justRegistered && (
+          <div
+            style={{
+              padding: "0.75rem 1rem",
+              borderRadius: "10px",
+              background: "color-mix(in srgb, var(--accent) 10%, transparent)",
+              border:
+                "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+              color: "var(--accent)",
+              fontSize: "0.8125rem",
+              fontWeight: 500,
+              marginBottom: "1.5rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <span>✓</span> Account created! Sign in to get started.
+          </div>
+        )}
 
         <div className="card">
           <h2 style={{ marginBottom: "0.375rem" }}>Welcome back</h2>
@@ -121,7 +152,14 @@ export default function Login() {
               disabled={loading}
               style={{ width: "100%", marginTop: "0.25rem" }}
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? (
+                <>
+                  <div className="spinner spinner-sm spinner-white" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign in →"
+              )}
             </button>
           </div>
         </div>

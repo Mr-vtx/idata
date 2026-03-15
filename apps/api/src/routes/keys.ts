@@ -26,13 +26,13 @@ export async function keyRoutes(server: FastifyInstance) {
         keyPrefix: prefix,
       });
 
-      return reply.status(201).send({
-        id: apiKey._id,
-        name: apiKey.name,
-        key,
-        prefix: apiKey.keyPrefix,
-        createdAt: apiKey.createdAt,
-      });
+   return reply.status(201).send({
+     id: apiKey._id.toString(),
+     name: apiKey.name,
+     key,
+     prefix: apiKey.keyPrefix,
+     createdAt: apiKey.createdAt,
+   });
     },
   );
 
@@ -45,7 +45,7 @@ export async function keyRoutes(server: FastifyInstance) {
 
       return reply.send({
         keys: keys.map((k) => ({
-          id: k._id,
+          id: k._id.toString(), 
           name: k.name,
           prefix: k.keyPrefix,
           isActive: k.isActive,
